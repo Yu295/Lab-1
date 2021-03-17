@@ -24,12 +24,11 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
             ORG RAMStart
 ; Insert here your data definition.
 
-LEDON equ $01
+LEDON equ $01  ;Value to write to PORT B
 Seg_Output fcb $3f, $06, $5b, $4f, $66, $6d, $7d, $07, $7f,$67 ; Lookup table for 0,1,2,3,4,5,6,7,8,9 using form constant byte
 
 ; code section
             ORG   ROMStart
-
 
 Entry:
 _Startup:
@@ -37,6 +36,14 @@ _Startup:
 
             CLI                     ; enable interrupts
             
+;Configure LEDs and Push Button	    
+	  ldaa    #$FF
+          staa    DDRB   ; Configure PORTB as output
+          staa    DDRJ   ; Port J as output to enable LED
+          ldaa    #00    ; need to write 0 to J0
+          staa    PTJ    ; to enable LEDs
+	  staa    DDRH   ; COnfigure PORTH as input
+	  
             
 ;**************************************************************
 ;*                 Interrupt Vectors                          *
