@@ -24,8 +24,10 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
             ORG RAMStart
 ; Insert here your data definition.
 
-LEDON equ $01  ;Value to write to PORT B
-Seg_Output fcb $3f, $06, $5b, $4f, $66, $6d, $7d, $07, $7f,$67 ; Lookup table for 0,1,2,3,4,5,6,7,8,9 using form constant byte
+;Value to write to PORT B
+	    LEDON  equ $01  
+; Lookup table for 0,1,2,3,4,5,6,7,8,9 using form constant byte
+	    Seg_output fcb $3f, $06, $5b, $4f, $66, $6d, $7d, $07, $7f,$67 
 
 ; code section
             ORG   ROMStart
@@ -38,12 +40,40 @@ _Startup:
             
 ;Configure LEDs and Push Button	    
 	  ldaa    #$FF
-          staa    DDRB   ; Configure PORTB as output
+          staa    DDRB   ; Configure PORT B as output
           staa    DDRJ   ; Port J as output to enable LED
           ldaa    #00    ; need to write 0 to J0
           staa    PTJ    ; to enable LEDs
-	  staa    DDRH   ; COnfigure PORTH as input
+	  staa    DDRH   ; Configure PORT H as input
+
+one_number:
+	  movb #$07, PTP   ; enable the fourth 7-seg (the far right one)
+          ldaa PTH; read the value from the dip switches
 	  
+          bsr send_led
+	  bra one-number
+
+
+
+
+;**************************************************************
+;*                 Additional Function                        *
+;**************************************************************
+send_led:             
+           ldx #Seg_output      ; Load the lookup table with HEX values
+  
+           stab PORTB            ; Send the value to the 7-seg
+           bsr delay             ; Delay to ensure 
+           rts
+
+; 0.5ms delay 0.5ms/ 41.66ns = 12001.9203 E-cycles, take 12000 E-cycles
+delay:
+          ldx #4000
+delay_loop:
+          
+	  dbne x,delay_loop ;  3 E-cycles if branching, 1 E-cycle if not
+          
+          rts	
             
 ;**************************************************************
 ;*                 Interrupt Vectors                          *
